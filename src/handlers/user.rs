@@ -119,3 +119,26 @@ pub async fn get_users(db: web::Data<MySqlPool>) -> impl Responder {
         }
     }
 }
+
+pub async fn get_user_by_id(
+    user_id: web::Path<String>,
+    db: web::Data<MySqlPool>,
+) -> impl Responder {
+    let result = sqlx::query_as::<_, User>(
+        "SELECT id, name, email FROM users WHERE id = ?"
+    )
+    .bind(user_id.into_inner())
+    .fetch_one(db.get_ref())
+    .await;
+
+    match result {
+        Ok(user) => HttpResponse::Ok().json(user),
+        Err(sqlx::Error::RowNotFound) => {
+            HttpResponse::NotFound().json(serde_json::json!({ "error": "User not found" }))
+        }
+        Err(e) => {
+            eprintln!("Error fetching user: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({ "error": "Could not fetch user" }))
+        }
+    }
+}

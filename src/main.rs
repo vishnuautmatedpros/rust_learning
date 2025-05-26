@@ -4,7 +4,7 @@ mod handlers;
 
 use actix_web::{web, App, HttpServer};
 use dotenvy::dotenv;
-use handlers::user::{register_user, get_users, login_user};
+use handlers::user::{register_user, get_users, login_user, get_user_by_id};
 
 
 #[actix_web::main]
@@ -37,6 +37,7 @@ async fn main() -> std::io::Result<()> {
             .route("/register", web::post().to(register_user))
             .route("/users", web::get().to(get_users))
             .route("/login", web::post().to(login_user))
+            .route("/users/{id}", web::get().to(get_user_by_id))
     })
     .bind("127.0.0.1:8080")?
     .run()
