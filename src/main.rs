@@ -2,9 +2,9 @@ mod db;
 mod models;
 mod handlers;
 
-use actix_web::{web, App, HttpServer};
+use actix_web::{web, App, HttpResponse, HttpServer};
 use dotenvy::dotenv;
-use handlers::user::{register_user, get_users, login_user};
+use handlers::user::{register_user, get_users, login_user, get_user_by_id};
 
 
 #[actix_web::main]
@@ -21,7 +21,8 @@ async fn main() -> std::io::Result<()> {
         "CREATE TABLE IF NOT EXISTS users (
             id VARCHAR(36) PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL UNIQUE
+            email VARCHAR(255) NOT NULL UNIQUE,
+            password VARCHAR(255) NOT NULL
         )",
     )
     .execute(&db_pool)
@@ -34,9 +35,14 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(db_pool.clone())) // Pass the database pool to the app
+            .route("/", web::get().to(|| async { HttpResponse::Ok().json(serde_json::json!({
+                "success": true,
+                "message": "Let's get Rusty!!!"
+            })) }))
             .route("/register", web::post().to(register_user))
             .route("/users", web::get().to(get_users))
             .route("/login", web::post().to(login_user))
+            .route("/users/{id}", web::get().to(get_user_by_id))
     })
     .bind("127.0.0.1:8080")?
     .run()
