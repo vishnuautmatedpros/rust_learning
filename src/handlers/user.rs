@@ -131,7 +131,7 @@ pub async fn get_user_by_id(
     .fetch_one(db.get_ref())
     .await;
 
-    match result {
+    match result {  
         Ok(user) => HttpResponse::Ok().json(user),
         Err(sqlx::Error::RowNotFound) => {
             HttpResponse::NotFound().json(serde_json::json!({ "error": "User not found" }))
